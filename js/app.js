@@ -1,13 +1,20 @@
 function AppModel(map) {
-    const that = this;
+    function Location(name, latitude, longitude) {
+        let that = this;
 
-    const bingMapKey = "Av5vuzFi-90pvKwVNrDHyGne9otjVjmQuy5Cl536IChqdNM7Wg_yO3yj3l1_c5VQ";
-    const geoCodeApi = "http://dev.virtualearth.net/REST/v1/Locations/point";
+        that.name = name;
+        that.latitude = latitude;
+        that.longitude = longitude;
+
+        return that;
+    }
+
+    const that = this;
 
     that.map = map;
     that.randomLocations = function (func) {
         const numOfPts = 7;
-        const points = Microsoft.Maps.TestDataGenerator.getLocations(numOfPts, map.getBounds());
+        const points = Microsoft.Maps.TestDataGenerator.getLocations(numOfPts, that.map.getBounds());
         let i = 0;
         const names = [
             "Star Park", "Gate to the Heaven", "Dark Portal",
@@ -15,13 +22,8 @@ function AppModel(map) {
         ];
         const locations = [];
         points.forEach(function (point) {
-            locations.push({
-                name: names[i++],
-                latitude: point.latitude,
-                longitude: point.longitude,
-            });
+            locations.push(new Location(names[i++], point.latitude, point.longitude));
         });
-        console.log(locations);
         func(locations);
     };
 
@@ -36,18 +38,32 @@ function AppViewModel(map) {
     that.keyword = ko.observable("");
     that.locations = ko.observableArray([]);
 
-    const pushins = [];
     model.randomLocations(function (locations) {
         locations.forEach(function (loc) {
             that.locations().push(loc);
-            pushin = new Microsoft.Maps.Pushpin(loc);
-            // pushin.setOptions({visible: false});
-            map.entities.push(pushin);
-            pushins.push(pushin);
         });
-        console.log(pushins);
-        console.log(that.locations());
     });
+
+    that.filteredLocations = ko.computed(function () {
+        let keyword = that.keyword().toLowerCase();
+        return ko.utils.arrayFilter(that.locations(), function (location) {
+            return -1 !== location.name.toLowerCase().indexOf(keyword);
+        });
+    }, that);
+
+    let updatePushins = function () {
+        map.entities.clear();
+        that.filteredLocations().forEach(function (loc) {
+            let pushin = new Microsoft.Maps.Pushpin(loc);
+            map.entities.push(pushin);
+        })
+    };
+
+    that.filteredLocations.subscribe(function () {
+        updatePushins();
+    });
+
+    updatePushins();
 }
 
 function initMap() {

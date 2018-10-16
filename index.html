@@ -7,8 +7,8 @@
 <body>
 
 <div>
-    <input data-bind="text: keyword">
-    <ul data-bind="foreach: locations">
+    <input data-bind="value: keyword">
+    <ul data-bind="foreach: filteredLocations">
         <li>
             <span data-bind="text: name"></span>
         </li>
