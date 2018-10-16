@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neighborhood Map</title>
+</head>
+<body>
+
+<div>
+    <input data-bind="text: keyword">
+    <ul data-bind="foreach: locations">
+        <li>
+            <span data-bind="text: name"></span>
+        </li>
+    </ul>
+</div>
+<main>
+    <div id="map" style="height: 1000px"></div>
+</main>
+
+<script src='js/knockout-3.4.2.js'></script>
+<script src='js/jquery-3.3.1.min.js'></script>
+<script src='js/app.js'></script>
+<script src='http://www.bing.com/api/maps/mapcontrol?callback=initMap&key=Av5vuzFi-90pvKwVNrDHyGne9otjVjmQuy5Cl536IChqdNM7Wg_yO3yj3l1_c5VQ'
+        async defer></script>
+</body>
+</html>
