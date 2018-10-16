@@ -1,6 +1,5 @@
 /**
- * model part of our up, it will model Location, and use a third party lib to get
- * more info about a location
+ * model part of our up, it will model Location, and foursquare venus api get venus info
  * @param map Map class in Bing Maps V8 Map Control
  * @returns {AppModel}
  * @constructor
@@ -20,6 +19,23 @@ function AppModel(map) {
         that.name = name;
         that.latitude = latitude;
         that.longitude = longitude;
+        that.venues = null;
+
+        const clientId = "PNQL0ZGB5IRITOMTM1ENVFGAFZJGW40D3CJEIHQYHYRULZEQ";
+        const clientSecret = "RWYFSR4MMVHGTURC0V0FWA2NO3GMD1AELILQGTLXALM1XJ3M";
+        const param = "?ll=" + this.latitude + "," + this.longitude + "&client_id=" + clientId + "&client_secret=" + clientSecret;
+        const foursquareApi = "https://api.foursquare.com/v2/venues/search" + param + "&v=20181010";
+
+        that.getVenues = function (callback) {
+            if (that.venues) {
+                callback(that.venues);
+                return;
+            }
+            $.getJSON(foursquareApi, function (data) {
+                that.venues = data.response.venues;
+                callback(that.venues);
+            })
+        };
 
         return that;
     }
@@ -78,7 +94,17 @@ function AppViewModel(map) {
             infobox.setOptions({
                 location: pt,
                 title: newValue.name,
+                description: "loading",
                 visible: true
+            });
+            newValue.getVenues(function (venues) {
+                let description = "no venue found";
+                if (venues.length > 0) {
+                    description = venues[0].name
+                }
+                infobox.setOptions({
+                    description: description,
+                });
             });
         }
     });
@@ -100,7 +126,7 @@ function AppViewModel(map) {
                 locationItem: loc
             };
             map.entities.push(pushin);
-            Microsoft.Maps.Events.addHandler(pushin, 'click', pushpinClicked);
+            Microsoft.Maps.Events.addHandler(pushin, "click", pushpinClicked);
         })
     };
     that.filteredLocations.subscribe(function () {
@@ -110,7 +136,7 @@ function AppViewModel(map) {
 }
 
 function initMap() {
-    const map = new Microsoft.Maps.Map(document.getElementById('map'), {});
+    const map = new Microsoft.Maps.Map(document.getElementById("map"), {});
     ko.applyBindings(new AppViewModel(map));
 }
 
